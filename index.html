@@ -3,11 +3,11 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <title>MVP 3D – City/Missions (solo)</title>
+  <title>MVP 3D – Ville & Missions (Solo, v2)</title>
   <style>
     :root{
       --bg:#0b0f1a; --hud:#0f1424cc; --hud2:#1a2240; --txt:#e9ecff; --muted:#aab1ff;
-      --accent:#ffd44d; --ok:#1dde7d; --bad:#ff5a66; --buy:#35b7ff;
+      --accent:#ffd44d; --ok:#1dde7d; --bad:#ff5a66; --buy:#35b7ff; --danger:#ff5a66;
     }
     *{box-sizing:border-box}
     html,body{height:100%;}
@@ -19,11 +19,11 @@
     .buttons{position:absolute;right:12px;top:12px;display:flex;gap:8px}
     .btn{pointer-events:auto;background:var(--hud);color:var(--txt);border:1px solid #ffffff1a;border-radius:12px;padding:10px 14px;cursor:pointer}
     .btn:hover{background:#1a2240cc}
-    .mission{position:absolute;left:12px;bottom:12px;background:var(--hud);border:1px solid #ffffff1a;border-radius:14px;padding:10px 12px;max-width:min(460px,92vw);pointer-events:auto}
-    .centerPrompt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--hud);border:1px solid #ffffff1a;border-radius:18px;padding:18px 16px;text-align:center;max-width:520px;pointer-events:auto}
+    .mission{position:absolute;left:12px;bottom:12px;background:var(--hud);border:1px solid #ffffff1a;border-radius:14px;padding:10px 12px;max-width:min(520px,92vw);pointer-events:auto}
+    .centerPrompt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--hud);border:1px solid #ffffff1a;border-radius:18px;padding:18px 16px;text-align:center;max-width:560px;pointer-events:auto}
     .centerPrompt h1{margin:0 0 6px;font-size:22px}
     .centerPrompt p{margin:0 0 10px;color:var(--muted)}
-    .shop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;pointer-events:auto}
+    .shop{position:fixed;inset:0;background:#0008;display:none;align-items:center;justify-content:center;pointer-events:auto; z-index:30}
     .card{background:#0f1424; border:1px solid #ffffff1a;border-radius:16px; padding:14px; width:min(900px,96vw); max-height:88vh; overflow:auto}
     .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
     .item{background:#0b1020;border:1px solid #ffffff14;border-radius:14px;padding:12px}
@@ -31,6 +31,7 @@
     .buy{display:inline-block;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--buy);color:#00172a;font-weight:700;cursor:pointer}
     .owned{display:inline-block;margin-top:8px;padding:8px 10px;border-radius:10px;background:var(--ok);color:#001a0c;font-weight:700}
     .closeX{position:sticky; top:0; display:flex; justify-content:end}
+
     .rotate{position:fixed; inset:0; background:#000c; color:#fff; display:none; align-items:center; justify-content:center; text-align:center; padding:24px; z-index:50}
     .rotate span{background:#111a; border:1px solid #fff2; padding:14px 16px; border-radius:12px}
 
@@ -40,6 +41,12 @@
     #stickL{left:20px}
     #stickR{right:20px}
     .knob{position:absolute; left:50%; top:50%; width:64px; height:64px; transform:translate(-50%,-50%); border-radius:50%; background:#ffffff2b; border:1px solid #ffffff5a}
+
+    /* Crosshair */
+    .cross{position:fixed; left:50%; top:50%; transform:translate(-50%,-50%); width:16px; height:16px; pointer-events:none}
+    .cross:before, .cross:after{content:""; position:absolute; background:#fff}
+    .cross:before{left:7px; top:0; width:2px; height:16px; opacity:.75}
+    .cross:after{top:7px; left:0; width:16px; height:2px; opacity:.75}
 
     @media (max-width:980px){
       .buttons{right:8px; top:8px}
@@ -52,7 +59,7 @@
 <body>
   <div class="hud">
     <div class="topbar" id="hudInfo">
-      <div class="row"><b>Points:</b>&nbsp;<span id="hudPoints">0</span> • <b>État:</b>&nbsp;<span id="hudState">à pied</span></div>
+      <div class="row"><b>Points:</b>&nbsp;<span id="hudPoints">0</span> • <b>État:</b>&nbsp;<span id="hudState">à pied</span> • <b>Arme:</b> 9mm</div>
       <div class="row" style="margin-top:4px"><b>Inventaire:</b>&nbsp;<span id="hudInv">(vide)</span></div>
     </div>
     <div class="buttons">
@@ -67,12 +74,14 @@
     </div>
     <div class="centerPrompt" id="centerPrompt">
       <h1>MVP 3D – Ville & Missions (Solo)</h1>
-      <p>Desktop: clique <b>Jouer</b> puis bouge avec <b>ZQSD / WASD</b>, souris pour viser, <b>Espace</b> pour sauter.<br/>Mobile: utilise les deux sticks virtuels (gauche = déplacement, droit = caméra).</p>
+      <p>Mode <b>3e personne</b> avec personnage et <b>pistolet 9mm</b>.<br/>
+         PC: ZQSD/WASD pour marcher, souris pour tourner (clic droit pour faire pivoter), <b>clic gauche pour tirer</b>.<br/>
+         Mobile: sticks virtuels (gauche = déplacement, droit = caméra), <b>touchez le centre pour tirer</b>.</p>
       <div class="row" style="justify-content:center; gap:10px; margin-top:8px">
         <button class="btn" id="btnPlayA">Jouer</button>
         <button class="btn" id="btnShopA">Boutique</button>
       </div>
-      <small style="display:block;margin-top:10px;color:#9ea6ff;opacity:.9">Prototypé pour GitHub Pages • Pas de serveur, sauvegarde locale uniquement</small>
+      <small style="display:block;margin-top:10px;color:#9ea6ff;opacity:.9">Prêt pour GitHub Pages • Sauvegarde locale (pas de base de données)</small>
     </div>
   </div>
 
@@ -92,35 +101,41 @@
     <div id="stickR" class="stick"><div class="knob"></div></div>
   </div>
 
-  <script type="module">
-    // === Imports (Three.js) ===
-    import * as THREE from 'https://unpkg.com/three@0.161.0/build/three.module.js';
-    import { PointerLockControls } from 'https://unpkg.com/three@0.161.0/examples/jsm/controls/PointerLockControls.js';
+  <!-- Crosshair -->
+  <div class="cross" id="cross"></div>
 
-    // === Utilities ===
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.161.0/build/three.module.js';
+
+    // === Helpers ===
     const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
     const dist2D = (ax, az, bx, bz) => Math.hypot(ax - bx, az - bz);
 
-    // === Save/Load (no DB: localStorage only) ===
-    const SAVE_KEY = 'mvp3d_save_v1';
+    // === Save/Load (localStorage only) ===
+    const SAVE_KEY = 'mvp3d_save_v2';
     let save = null;
     function loadSave(){
       try{ save = JSON.parse(localStorage.getItem(SAVE_KEY)||'null') }catch(e){ save=null }
       if(!save){
-        save = { points: 0, owned: { pistol:false, rifle:false, outfit:false, car:false, heli:false, plane:false, house:false }, lastPlayed: Date.now() };
+        save = { points: 1000, owned: { pistol:true, rifle:false, outfit:false, car:false, heli:false, plane:false, house:false }, lastPlayed: Date.now() };
+      } else {
+        // garantie: au moins 1000 points au premier lancement de v2
+        if(save.points < 1000) save.points = 1000;
+        if(!save.owned) save.owned = { pistol:true };
+        save.owned.pistol = true; // 9mm par défaut
       }
       updateHUD();
     }
     function persist(){ localStorage.setItem(SAVE_KEY, JSON.stringify(save)) }
 
-    // === Economy & Shop ===
+    // === Shop ===
     const SHOP_ITEMS = [
-      { id:'pistol', name:'Pistolet', price:150, desc:'Arme de base. Esthétique pour l’instant (placeholders).'},
-      { id:'rifle',  name:'Fusil d'assaut', price:500, desc:'Portée et dégâts fictifs (MVP).'},
+      { id:'pistol', name:'Pistolet (9mm)', price:0, desc:'Arme de base — déjà possédée.'},
+      { id:'rifle',  name:'Fusil d\'assaut', price:500, desc:'Portée et dégâts supérieurs.'},
       { id:'outfit', name:'Tenue (skins)', price:200, desc:'Change la couleur du joueur.'},
       { id:'car',    name:'Voiture', price:800, desc:'Déplacements 2x plus rapides.'},
-      { id:'heli',   name:'Hélicoptère', price:2000, desc:'Active le vol vertical (mode aérien).'},
+      { id:'heli',   name:'Hélicoptère', price:2000, desc:'Activer le vol vertical.'},
       { id:'plane',  name:'Avion', price:3000, desc:'Vol plus rapide en palier.'},
       { id:'house',  name:'Maison', price:1500, desc:'Point de départ personnalisé (à venir).'},
     ];
@@ -140,7 +155,7 @@
         div.innerHTML = `<div style="font-weight:700">${it.name}</div>
                          <div class="price">${it.price} pts</div>
                          <div style="margin-top:6px;color:#9fb2ff">${it.desc}</div>`;
-        if(save.owned[it.id]){
+        if(save.owned[it.id] || it.price===0){
           const tag = document.createElement('div'); tag.className='owned'; tag.textContent='Déjà possédé'; div.appendChild(tag);
         } else {
           const btn = document.createElement('button'); btn.className='buy'; btn.textContent='Acheter';
@@ -154,7 +169,6 @@
       }
     }
 
-    // === Flash helper ===
     function flashMsg(text){
       const el = document.createElement('div');
       el.textContent = text;
@@ -174,12 +188,9 @@
     scene.background = new THREE.Color(0x0b0f1a);
     scene.fog = new THREE.Fog(0x0b0f1a, 120, 420);
 
-    const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
-    camera.position.set(0, 1.8, 6);
-
     // Lights
-    const hemi = new THREE.HemisphereLight(0xe8f0ff, 0x08121e, 0.8);
-    const dir = new THREE.DirectionalLight(0xffffff, 0.6); dir.position.set(40,60,30); dir.castShadow = false;
+    const hemi = new THREE.HemisphereLight(0xe8f0ff, 0x08121e, 0.85);
+    const dir  = new THREE.DirectionalLight(0xffffff, 0.7); dir.position.set(60,80,40);
     scene.add(hemi, dir);
 
     // Ground
@@ -192,7 +203,7 @@
     // Roads grid
     const roads = new THREE.Group();
     const roadMat = new THREE.MeshStandardMaterial({ color:0x323640, roughness:.9 });
-    for(let i=-10;i<=10;i++){
+    for(let i=-8;i<=8;i++){
       const r1 = new THREE.Mesh(new THREE.PlaneGeometry(1000,6), roadMat); r1.rotation.x=-Math.PI/2; r1.position.z = i*20; roads.add(r1);
       const r2 = new THREE.Mesh(new THREE.PlaneGeometry(6,1000), roadMat); r2.rotation.x=-Math.PI/2; r2.position.x = i*20; roads.add(r2);
     }
@@ -203,46 +214,63 @@
     const obstacles = []; // Box3 list for collisions
     const bMat = new THREE.MeshStandardMaterial({ color:0x2a2e54, roughness:.8, metalness:0.05 });
     const rng = (a,b)=> a + Math.random()*(b-a);
-    for(let gx=-9; gx<=9; gx++){
-      for(let gz=-9; gz<=9; gz++){
+    for(let gx=-7; gx<=7; gx++){
+      for(let gz=-7; gz<=7; gz++){
         if(Math.abs(gx)<2 && Math.abs(gz)<2) continue; // keep spawn area clean
-        if(Math.random()<0.7){ // many city blocks occupied
-          // Leave a gap so buildings don't overlap roads
+        if(Math.random()<0.7){
           const w = rng(6, 14), d = rng(6, 14), h = rng(8, 38);
           const mx = gx*20 + rng(-5,5); const mz = gz*20 + rng(-5,5);
           const mesh = new THREE.Mesh(new THREE.BoxGeometry(w,h,d), bMat);
           mesh.position.set(mx, h/2, mz);
           buildings.add(mesh);
-          const box = new THREE.Box3().setFromObject(mesh).expandByScalar(0.6); // padding for collisions
+          const box = new THREE.Box3().setFromObject(mesh).expandByScalar(0.6);
           obstacles.push(box);
         }
       }
     }
 
-    // Simple beacon (mission target)
+    // Targets (entrainement)
+    const targets = [];
+    const targetGroup = new THREE.Group(); scene.add(targetGroup);
+    function spawnTargets(n=6){
+      while(targetGroup.children.length) targetGroup.remove(targetGroup.children.pop());
+      targets.length = 0;
+      for(let i=0;i<n;i++){
+        const t = new THREE.Mesh(new THREE.CylinderGeometry(0.6,0.6,1.4,16), new THREE.MeshStandardMaterial({color:0xff4444}));
+        const x = rng(-30, 30), z = rng(-30, 30);
+        t.position.set(x, 0.7, z); t.userData.kind='target';
+        targetGroup.add(t); targets.push(t);
+      }
+    }
+
+    // Beacon (mission point)
     const beacon = new THREE.Mesh(new THREE.TorusGeometry(2.3, 0.25, 10, 40), new THREE.MeshStandardMaterial({ color:0xffd44d, emissive:0x332200, emissiveIntensity:0.6 }));
     beacon.rotateX(Math.PI/2); beacon.visible=false; scene.add(beacon);
 
-    // Player & Controls
-    const controls = new PointerLockControls(camera, renderer.domElement);
-    let velocity = new THREE.Vector3();
-    let direction = new THREE.Vector3();
-    let onGround = true;
-    let speedBase = 12; // m/s walking
-    let speedMult = 1;  // vehicle boost etc.
+    // === Player (3rd person) ===
+    const player = new THREE.Group(); scene.add(player);
+    const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 1.1, 6, 12), new THREE.MeshStandardMaterial({ color:0x7fc7ff }));
+    body.position.y = 1.1; player.add(body);
+    // Pistol (9mm) visuel simple
+    const pistol = new THREE.Mesh(new THREE.BoxGeometry(0.5,0.25,0.15), new THREE.MeshStandardMaterial({ color:0x111111 }));
+    pistol.position.set(0.45, 1.1, -0.15); player.add(pistol);
 
-    const keys = { forward:false, backward:false, left:false, right:false, jump:false };
-    function onKey(e, down){
-      switch(e.code){
-        case 'KeyW': case 'ArrowUp': case 'KeyZ': keys.forward=down; break;
-        case 'KeyS': case 'ArrowDown': keys.backward=down; break;
-        case 'KeyA': case 'ArrowLeft': case 'KeyQ': keys.left=down; break;
-        case 'KeyD': case 'ArrowRight': keys.right=down; break;
-        case 'Space': if(down && onGround){ velocity.y = 6; onGround=false; } break;
-      }
-    }
-    window.addEventListener('keydown', e=>onKey(e,true));
-    window.addEventListener('keyup', e=>onKey(e,false));
+    player.position.set(0,0,6);
+
+    // Camera (chase)
+    const camera = new THREE.PerspectiveCamera(75, innerWidth/innerHeight, 0.1, 1000);
+    const cam = { yaw:0, pitch:0.1, dist:5.2, height:2.2 };
+
+    // Desktop mouse drag to rotate view; LMB=shoot, RMB=rotate
+    let dragging=false, lastX=0,lastY=0;
+    window.addEventListener('mousedown', e=>{
+      if(e.button===2){ dragging=true; lastX=e.clientX; lastY=e.clientY; }
+      if(e.button===0){ shoot(); }
+    });
+    window.addEventListener('mousemove', e=>{
+      if(dragging){ cam.yaw -= (e.clientX-lastX)*0.005; cam.pitch -= (e.clientY-lastY)*0.003; cam.pitch = clamp(cam.pitch, -1.2, 0.9); lastX=e.clientX; lastY=e.clientY; }
+    });
+    window.addEventListener('mouseup', e=>{ if(e.button===2) dragging=false; });
 
     // Mobile look + move via virtual sticks
     class VirtualStick{
@@ -262,43 +290,120 @@
       }
     }
 
-    const mobile = { enabled:isMobile, yaw:0, pitch:0, stickL:null, stickR:null };
+    const mobile = { enabled:isMobile, stickL:null, stickR:null };
     if(isMobile){
       document.getElementById('sticks').style.display='block';
       mobile.stickL = new VirtualStick(document.getElementById('stickL'));
       mobile.stickR = new VirtualStick(document.getElementById('stickR'));
-      // Disable pointer lock interactions on mobile
+      // Tap center to shoot
+      renderer.domElement.addEventListener('pointerdown', (e)=>{
+        // area near crosshair
+        if(Math.abs(e.clientX - innerWidth/2) < 80 && Math.abs(e.clientY - innerHeight/2) < 80){ shoot(); }
+      });
     }
 
-    // Collision helpers
-    const playerRadius = 0.6;
-    function collides(next){
-      const p = new THREE.Vector3(next.x, next.y, next.z);
-      // Build a small box around player to check intersection with obstacles
-      const box = new THREE.Box3(new THREE.Vector3(p.x-playerRadius, p.y-1.0, p.z-playerRadius), new THREE.Vector3(p.x+playerRadius, p.y+1.6, p.z+playerRadius));
+    // Collisions (XZ)
+    const playerRadius = 0.5;
+    function collidesXZ(nx, nz){
+      const box = new THREE.Box3(
+        new THREE.Vector3(nx-playerRadius, 0, nz-playerRadius),
+        new THREE.Vector3(nx+playerRadius, 3.0, nz+playerRadius)
+      );
       for(const ob of obstacles){ if(ob.intersectsBox(box)) return true; }
       return false;
     }
 
-    function tryMove(deltaX, deltaY, deltaZ){
-      const obj = controls.getObject();
-      const next = obj.position.clone().add(new THREE.Vector3(deltaX, deltaY, deltaZ));
-      if(!collides(next)) obj.position.copy(next);
+    // Movement
+    const keys = { forward:false, backward:false, left:false, right:false };
+    function onKey(e, down){
+      switch(e.code){
+        case 'KeyW': case 'ArrowUp': case 'KeyZ': keys.forward=down; break;
+        case 'KeyS': case 'ArrowDown': keys.backward=down; break;
+        case 'KeyA': case 'ArrowLeft': case 'KeyQ': keys.left=down; break;
+        case 'KeyD': case 'ArrowRight': keys.right=down; break;
+      }
+    }
+    window.addEventListener('keydown', e=>onKey(e,true));
+    window.addEventListener('keyup', e=>onKey(e,false));
+
+    let speedBase = 8.5; // m/s walking
+    let speedMult = 1;   // vehicle boost etc.
+
+    function movePlayer(delta){
+      let yaw = cam.yaw;
+      // Mobile camera from stickR
+      if(isMobile){
+        cam.yaw   += -mobile.stickR.value.x * 2.5 * delta;
+        cam.pitch += -mobile.stickR.value.y * 1.8 * delta; cam.pitch = clamp(cam.pitch, -1.2, 0.9);
+        yaw = cam.yaw;
+      }
+      const forward = new THREE.Vector3(Math.sin(yaw), 0, -Math.cos(yaw));
+      const right   = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0,1,0)).negate();
+
+      let ix=0, iz=0;
+      if(!isMobile){
+        ix += (keys.right?1:0) - (keys.left?1:0);
+        iz += (keys.backward?1:0) - (keys.forward?1:0);
+      } else {
+        ix += mobile.stickL.value.x;
+        iz += mobile.stickL.value.y; // up on stick is negative y
+      }
+      const len = Math.hypot(ix,iz)||1; ix/=len; iz/=len;
+      const speed = speedBase*speedMult;
+      const dx = (right.x*ix + forward.x*(-iz)) * speed * delta;
+      const dz = (right.z*ix + forward.z*(-iz)) * speed * delta;
+      const nx = player.position.x + dx;
+      const nz = player.position.z + dz;
+      if(!collidesXZ(nx, nz)) player.position.set(nx, 0, nz);
+
+      // Face the moving/aim direction
+      player.rotation.y = yaw;
+
+      // Camera follow
+      const camX = player.position.x - Math.sin(cam.yaw)*cam.dist;
+      const camY = player.position.y + cam.height;
+      const camZ = player.position.z + Math.cos(cam.yaw)*cam.dist;
+      camera.position.set(camX, camY, camZ);
+      camera.lookAt(player.position.x, player.position.y+1.2, player.position.z);
     }
 
-    // Missions (very simple for MVP)
+    // Shooting (raycast)
+    const raycaster = new THREE.Raycaster();
+    function shoot(){
+      if(!playing) return;
+      const dir = new THREE.Vector3(); camera.getWorldDirection(dir);
+      raycaster.set(camera.position, dir);
+      const hits = raycaster.intersectObjects(targets, false);
+      if(hits.length){
+        const obj = hits[0].object;
+        targetGroup.remove(obj);
+        const idx = targets.indexOf(obj); if(idx>=0) targets.splice(idx,1);
+        save.points += 25; persist(); updateHUD();
+        flashMsg('+25 pts (cible)');
+        if(missionActive && currentMission && currentMission.id==='shoot_targets'){
+          missionProgress += 1; if(missionProgress>=currentMission.goal) completeMission(); else updateMissionHUD();
+        }
+      } else {
+        // small muzzle flash effect (optional)
+      }
+    }
+
+    // Missions
     const missions = [
-      { id:'go_beacon', title:'Rejoindre le point de rendez-vous', hint:'Suis l'anneau lumineux sur ta carte. Récompense: +120 pts', reward:120 },
-      { id:'sprint', title:'Sprint de ville', hint:'Parcourir 300 m le long des routes. Récompense: +180 pts', reward:180 },
+      { id:'go_beacon', title:'Rejoindre le point de rendez-vous', hint:'Suis l\'anneau lumineux sur la carte. Récompense: +120 pts', reward:120 },
+      { id:'shoot_targets', title:'Abattre 3 cibles', hint:'Tire sur 3 cibles rouges près de la zone de départ. Récompense: +150 pts', reward:150, goal:3 },
     ];
     let currentMission = null; let missionProgress = 0; let missionActive=false;
+
     function startMission(){
       if(missionActive) { flashMsg('Mission déjà en cours.'); return; }
       const m = missions[Math.floor(Math.random()*missions.length)];
       currentMission = m; missionProgress=0; missionActive=true; updateMissionHUD();
       if(m.id==='go_beacon'){
-        const px = Math.round((Math.random()*16-8))*20; const pz = Math.round((Math.random()*16-8))*20;
-        beacon.position.set(px, 2, pz); beacon.visible=true;
+        const px = Math.round((Math.random()*12-6))*20; const pz = Math.round((Math.random()*12-6))*20;
+        beacon.position.set(px, 1.8, pz); beacon.visible=true;
+      } else if(m.id==='shoot_targets'){
+        spawnTargets(6); // ensure there are targets to shoot
       }
     }
     function completeMission(){
@@ -306,38 +411,36 @@
       flashMsg('Mission accomplie! +' + currentMission.reward + ' pts');
       save.points += currentMission.reward; persist();
       missionActive=false; beacon.visible=false; currentMission=null; missionProgress=0; updateMissionHUD(); updateHUD();
+      // refresh some targets to keep fun
+      if(targets.length<3) spawnTargets(6);
     }
     function updateMission(delta){
       if(!missionActive || !currentMission) return;
       if(currentMission.id==='go_beacon'){
-        const p = controls.getObject().position; const d = dist2D(p.x,p.z, beacon.position.x, beacon.position.z);
-        if(d < 3.2) completeMission();
-      } else if(currentMission.id==='sprint'){
-        // Measure distance moved along XZ
-        missionProgress += Math.abs(velocity.x*delta) + Math.abs(velocity.z*delta);
-        if(missionProgress >= 300) completeMission();
+        const d = dist2D(player.position.x, player.position.z, beacon.position.x, beacon.position.z);
+        if(d < 3.0) completeMission();
       }
     }
 
-    // Day/Night cycle (ambient change)
+    // Day/Night cycle
     let dayT = 0; // 0..1
     function updateDayNight(delta){
       dayT = (dayT + delta*0.01) % 1; // ~100s per day
       const sky = new THREE.Color().setHSL(0.62, 0.45, 0.12 + 0.65*Math.max(0, Math.sin(dayT*Math.PI)));
       scene.background.copy(sky);
-      hemi.intensity = 0.5 + 0.5*Math.max(0, Math.sin(dayT*Math.PI));
-      dir.intensity  = 0.3 + 0.4*Math.max(0, Math.sin(dayT*Math.PI));
+      hemi.intensity = 0.6 + 0.4*Math.max(0, Math.sin(dayT*Math.PI));
+      dir.intensity  = 0.4 + 0.4*Math.max(0, Math.sin(dayT*Math.PI));
     }
 
-    // Points by time spent
-    let timeBank = 0; // accumulate seconds
+    // Points over time
+    let timeBank = 0;
     function updatePointsByTime(delta){
-      timeBank += delta; // seconds
-      // 1 point / 10s
-      const give = Math.floor(timeBank / 10);
+      timeBank += delta;
+      const give = Math.floor(timeBank / 10); // 1 point / 10s
       if(give>0){ save.points += give; timeBank -= give*10; persist(); updateHUD(); }
     }
 
+    // HUD
     function updateHUD(){
       document.getElementById('hudPoints').textContent = Math.floor(save.points);
       document.getElementById('hudInv').textContent = formatInv();
@@ -347,26 +450,28 @@
     function updateMissionHUD(){
       const t = document.getElementById('missionTitle');
       const h = document.getElementById('missionHint');
-      if(missionActive && currentMission){ t.textContent = currentMission.title; h.textContent=currentMission.hint; }
+      if(missionActive && currentMission){
+        if(currentMission.id==='shoot_targets'){
+          t.textContent = `${currentMission.title} (${missionProgress}/${currentMission.goal})`;
+        } else t.textContent = currentMission.title;
+        h.textContent=currentMission.hint;
+      }
       else { t.textContent = 'aucune'; h.textContent = 'Appuie sur Mission pour commencer un objectif rapide.'; }
     }
 
     function applyOwnershipEffects(){
       speedMult = (save.owned.car?2:1);
       document.getElementById('hudState').textContent = speedMult>1? 'en véhicule' : 'à pied';
-      // Outfit → just tint beacon to show style (placeholder)
       beacon.material.color.set(save.owned.outfit? 0x7cf7ff : 0xffd44d);
+      body.material.color.set(save.owned.outfit? 0xffb86b : 0x7fc7ff);
     }
 
-    // Vehicle enter/exit toggle (speed change only, for MVP)
+    // Vehicle toggle (speed only for MVP)
     let inVehicle = false;
     function toggleVehicle(){
       if(!save.owned.car){ flashMsg('Tu dois acheter une voiture dans la Boutique.'); return; }
       inVehicle = !inVehicle; speedMult = inVehicle? 2 : 1; updateHUD(); document.getElementById('hudState').textContent = inVehicle? 'en véhicule' : 'à pied';
     }
-
-    // Flight (heli/plane)
-    function flightEnabled(){ return !!(save.owned.heli || save.owned.plane); }
 
     // Resize & orientation
     function onResize(){
@@ -377,7 +482,7 @@
     }
     window.addEventListener('resize', onResize);
 
-    // === UI bindings ===
+    // UI bindings
     const shopEl = document.getElementById('shop');
     document.getElementById('btnShop').onclick = ()=>{ buildShop(); shopEl.style.display='flex'; };
     document.getElementById('btnShopA').onclick = ()=>{ buildShop(); shopEl.style.display='flex'; };
@@ -385,89 +490,43 @@
     document.getElementById('btnMission').onclick = ()=> startMission();
     document.getElementById('btnVehicle').onclick = ()=> toggleVehicle();
 
-    // Start / PointerLock
+    let playing = false;
     function startPlay(){
+      playing = true;
       document.getElementById('centerPrompt').style.display='none';
-      if(!isMobile){ controls.lock(); }
+      document.getElementById('cross').style.display='block';
     }
     document.getElementById('btnStart').onclick = startPlay;
     document.getElementById('btnPlayA').onclick = startPlay;
 
-    // === Main loop ===
+    // Main loop
     let prev = performance.now();
     function animate(now){
       const delta = Math.min(0.05, (now - prev)/1000); prev = now;
-
-      // Movement (desktop)
-      if(!isMobile){
-        direction.set(Number(keys.right) - Number(keys.left), 0, Number(keys.backward) - Number(keys.forward));
-        direction.normalize();
-        const speed = speedBase*speedMult;
-        const obj = controls.getObject();
-
-        // Gravity & vertical
-        velocity.y += onGround? 0 : -18*delta; // gravity
-        // Horizontal intention
-        const vx = direction.x * speed * delta;
-        const vz = direction.z * speed * delta;
-        // Convert to world space using camera yaw
-        const yaw = obj.rotation.y;
-        const dx = Math.cos(yaw)*vz + Math.sin(yaw)*vx;
-        const dz = Math.sin(yaw)*vz - Math.cos(yaw)*vx;
-
-        tryMove(dx, 0, dz);
-        // Vertical move with collision simple (ground at y=1.8 baseline)
-        tryMove(0, velocity.y*delta, 0);
-        const p = obj.position;
-        if(p.y <= 1.8){ p.y = 1.8; velocity.y = 0; onGround = true; } else onGround=false;
+      if(playing){
+        movePlayer(delta);
+        updateMission(delta);
+        updatePointsByTime(delta);
       }
-
-      // Movement (mobile)
-      if(isMobile){
-        // Look
-        mobile.yaw   += -mobile.stickR.value.x * 2.5 * delta; // left/right
-        mobile.pitch += -mobile.stickR.value.y * 1.8 * delta; // up/down
-        mobile.pitch = clamp(mobile.pitch, -Math.PI/3, Math.PI/3);
-        camera.rotation.set(mobile.pitch, mobile.yaw, 0, 'YXZ');
-        const forward = new THREE.Vector3(Math.sin(mobile.yaw), 0, -Math.cos(mobile.yaw));
-        const right   = new THREE.Vector3().crossVectors(forward, new THREE.Vector3(0,1,0)).negate();
-        const speed = speedBase*speedMult*0.9; // a bit slower on mobile
-        const mv = mobile.stickL.value;
-        const dx = (right.x*mv.x + forward.x*(-mv.y)) * speed * delta;
-        const dz = (right.z*mv.x + forward.z*(-mv.y)) * speed * delta;
-
-        const obj = controls.getObject(); // still use the same holder for position
-        // Vertical (flight)
-        let dy = 0;
-        if(flightEnabled()){
-          dy += (-mv.y>0.8? 1:0) * (save.owned.plane? 18:10) * delta; // pull up when pushing forward strongly
-          dy += (mv.y>0.8? -1:0) * (save.owned.plane? 12:8) * delta;   // go down when pushing back strongly
-        }
-        tryMove(dx, dy, dz);
-      }
-
-      // Beacon spin
-      if(beacon.visible){ beacon.rotation.z += 0.9*delta; }
-
-      // Systems
       updateDayNight(delta);
-      updateMission(delta);
-      updatePointsByTime(delta);
-
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     }
 
     // Init
     loadSave(); buildShop(); applyOwnershipEffects(); onResize();
-    scene.add(controls.getObject()); controls.getObject().position.set(0,1.8,6);
-    requestAnimationFrame(animate);
+    spawnTargets(6);
 
-    // Quality caps for weak devices
-    if(isMobile && devicePixelRatio>1.5){ renderer.setPixelRatio(1.5); }
-
-    // Prevent context menu on long-press mobile
+    // Prevent context menu on RMB drag
     window.addEventListener('contextmenu', e=> e.preventDefault());
+
+    // Start camera at a nice angle
+    cam.yaw = Math.PI*1.25;
+    camera.position.set(player.position.x - Math.sin(cam.yaw)*cam.dist, player.position.y + cam.height, player.position.z + Math.cos(cam.yaw)*cam.dist);
+    camera.lookAt(player.position.x, player.position.y+1.2, player.position.z);
+
+    // Performance tweak on high DPR mobiles
+    if(isMobile && devicePixelRatio>1.5){ renderer.setPixelRatio(1.5); }
   </script>
 </body>
 </html>
